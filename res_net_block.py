@@ -5,21 +5,31 @@ EXPANSION_FACTOR = 4
 
 class ResNetBlock(nn.Module):
     """
-    Initialization Parametrs for a ResNetBlock
+    Initialization Parameters for a ResNetBlock
 
-    input_channel_count:  An image tensor is a (k x w x h) tensor where k represents
-       how many channels, naively, groups of features discovered by the ml model.
-       the shape of the input tensor for this block of layers is
-       (input_channel x w x h).
-    internal_channel_count:
-       Internal activations are all image tensors (see above), with tensor shape
-       (internal_channel_count x w x h).  For a ResNet, the internal channels don't
-       increase within the layers of a block, but are increased on the last step of
-       processing.
+    ResNetBlock transform image tensors to image tensors.  An image tensor is a
+    (k x w x h) tensor where k represents how many "channels", naively, "groups
+    of features" discovered by the ml model (though in reality these are vectorized).
 
-    downsampler:  A shape-changing identity layer that is necessary if we change
-       the input size or if we change the number of channels.
+    The following parameters are expected by the ResNetBlock class:
+
+    input_channel_count:
+      The number of channels that this block expects.  The shape of the input tensor
+      will be:  (image_count x input_channel x w x h).  Naively, the larger the channel
+      count, the richer the inbound information.
+
+    output_channel_count:
+      This value governs how many channels this block will emit.  The shape of the
+      output tensor for this block will be:  (image_count x output_channel x w x h).
+      Naively, the larger the channel count, the richer the outbound information.
+      Typically, the outbound channel count should be greater than the inbound channel
+      count.
+
     stride: unless 1, skips (stride - 1) pixels in the image as a downsizing strategy.
+
+    layers: A testing convenience.
+      "all" - use all layers (default, use this when not testing)
+      (int) - use the first (int) layers, setting the remainders to be identity layers.
     """
     def __init__(self, input_channel_count, internal_channel_count, stride=1, layers = 'all'):
         super(ResNetBlock, self).__init__()
