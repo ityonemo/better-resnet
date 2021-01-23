@@ -4,6 +4,9 @@ from res_net_block import ResNetBlock
 
 class ResNet(nn.Module):
     def __init__(self, block_counts, input_channels, num_classes, layers = 'all'):
+        # make sure that our block counts is a list with 4 parameters.
+        assert len(block_counts) == 4
+
         super(ResNet, self).__init__()
 
         # how many channels we'll start out with in the first convnet layer.

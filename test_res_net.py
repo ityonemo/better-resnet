@@ -7,6 +7,10 @@ def BasicResNet(layers, input_channels = 3, num_classes = 10):
 
 INPUT_TENSOR = torch.randn(4, 3, 224, 224)
 class TestResNet(unittest.TestCase):
+    def test_layerdef_checked(self):
+        with self.assertRaises(AssertionError):
+            ResNet([1, 2, 3], input_channels = 3, num_classes = 10)
+
     def _assertSize(self, tensor, sizespec):
         self.assertEqual(tensor.size(), torch.Size(sizespec))
 
