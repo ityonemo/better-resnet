@@ -3,13 +3,13 @@ import torch
 from res_net_block import ResNetBlock
 
 def BasicBlock(layers):
-    return ResNetBlock(64, 64, layers = layers)
+    return ResNetBlock(64, 256, layers = layers)
 
 def StaticBlock(layers):
-    return ResNetBlock(64, 16, layers = layers)
+    return ResNetBlock(64, 64, layers = layers)
 
 def StridedBlock(layers):
-    return ResNetBlock(64, 16, stride = 2, layers = layers)
+    return ResNetBlock(64, 64, stride = 2, layers = layers)
 
 # torch tensors are row-major.  Who the fuck thought that was a good idea?
 # the order is as follows:  batch index, channels, image column, image row.

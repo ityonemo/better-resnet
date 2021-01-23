@@ -25,14 +25,23 @@ class ResNetBlock(nn.Module):
       Typically, the outbound channel count should be greater than the inbound channel
       count.
 
+      The block will use `output_channel_count` // `EXPANSION_FACTOR` channels for its
+      internal image tensors, so if you specify an output channel count that is not
+      divisible by `EXPANSION_FACTOR` then the object construction will fail.
+
     stride: unless 1, skips (stride - 1) pixels in the image as a downsizing strategy.
 
     layers: A testing convenience.
       "all" - use all layers (default, use this when not testing)
       (int) - use the first (int) layers, setting the remainders to be identity layers.
     """
-    def __init__(self, input_channel_count, internal_channel_count, stride=1, layers = 'all'):
+    def __init__(self, input_channel_count, output_channel_count, stride=1, layers = 'all'):
         super(ResNetBlock, self).__init__()
+
+        # checks to make sure the output_channel_count is consistent.
+        assert output_channel_count % EXPANSION_FACTOR == 0
+
+        internal_channel_count = output_channel_count // EXPANSION_FACTOR
 
         # a parameter which expresses the multiplicity of the channels coming out relative
         # the channels coming in.
@@ -42,10 +51,10 @@ class ResNetBlock(nn.Module):
         self.conv2 =       self._option(4, layers, nn.Conv2d(internal_channel_count, internal_channel_count, kernel_size=3, stride=stride, padding=1))
         self.batchnorm2 =  self._option(5, layers, nn.BatchNorm2d(internal_channel_count))
         self.relu2 =       self._option(6, layers, nn.ReLU())
-        self.conv3 =       self._option(7, layers, nn.Conv2d(internal_channel_count, internal_channel_count * EXPANSION_FACTOR, kernel_size=1, stride=1, padding=0))
-        self.batchnorm3 =  self._option(8, layers, nn.BatchNorm2d(internal_channel_count * EXPANSION_FACTOR))
+        self.conv3 =       self._option(7, layers, nn.Conv2d(internal_channel_count, output_channel_count, kernel_size=1, stride=1, padding=0))
+        self.batchnorm3 =  self._option(8, layers, nn.BatchNorm2d(output_channel_count))
         self.relu3 =       self._option(9, layers, nn.ReLU())
-        self.downsampler = ResNetBlock.downsampler_fn(input_channel_count, internal_channel_count, stride)
+        self.downsampler = ResNetBlock.downsampler_fn(input_channel_count, output_channel_count, stride)
         self.skiplayer =   self._option(10, layers, self._skiplayer, self._identity_layer2)
         self.relu3 =       nn.ReLU()
 
@@ -79,17 +88,17 @@ class ResNetBlock(nn.Module):
 
     Note this is a static function.
     """
-    def downsampler_fn(input_channel_count, internal_channel_count, stride):
-        if stride == 1 and input_channel_count == internal_channel_count * EXPANSION_FACTOR:
+    def downsampler_fn(input_channel_count, output_channel_count, stride):
+        if stride == 1 and input_channel_count == output_channel_count:
             return None
         return nn.Sequential(
                     nn.Conv2d(
                         input_channel_count,
-                        internal_channel_count * EXPANSION_FACTOR,
+                        output_channel_count,
                         kernel_size=1,
                         stride=stride,
                     ),
-                    nn.BatchNorm2d(internal_channel_count * EXPANSION_FACTOR))
+                    nn.BatchNorm2d(output_channel_count))
 
     """
     provides a "skipping" layer that is the primary feature of ResNets:
