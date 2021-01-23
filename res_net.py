@@ -19,11 +19,11 @@ class ResNet(nn.Module):
         self.relu       = self._option(3, layers, nn.ReLU())
         self.maxpool    = self._option(4, layers, nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
-        ## ResNet metalayers
-        self.metalayer1 = self._option(5, layers, self._make_metalayer(block_counts[0], input_channels=64, internal_channels=64, stride=1))
-        self.metalayer2 = self._option(6, layers, self._make_metalayer(block_counts[1], input_channels=256, internal_channels=128, stride=2))
-        self.metalayer3 = self._option(7, layers, self._make_metalayer(block_counts[2], input_channels=512, internal_channels=256, stride=2))
-        self.metalayer4 = self._option(8, layers, self._make_metalayer(block_counts[3], input_channels=1024, internal_channels=512, stride=2))
+        ## ResNet blocklayers
+        self.blocklayer1 = self._option(5, layers, self._make_blocklayer(block_counts[0], input_channels=64, internal_channels=64, stride=1))
+        self.blocklayer2 = self._option(6, layers, self._make_blocklayer(block_counts[1], input_channels=256, internal_channels=128, stride=2))
+        self.blocklayer3 = self._option(7, layers, self._make_blocklayer(block_counts[2], input_channels=512, internal_channels=256, stride=2))
+        self.blocklayer4 = self._option(8, layers, self._make_blocklayer(block_counts[3], input_channels=1024, internal_channels=512, stride=2))
 
         ## cleanup and postprocessing
         self.avgpool =        self._option(9, layers, nn.AdaptiveAvgPool2d((1, 1)))
@@ -36,18 +36,18 @@ class ResNet(nn.Module):
         activation = self.batchnorm1(activation)
         activation = self.relu(activation)
         activation = self.maxpool(activation)
-        ## apply the resnet layers
-        activation = self.metalayer1(activation)
-        activation = self.metalayer2(activation)
-        activation = self.metalayer3(activation)
-        activation = self.metalayer4(activation)
+        ## apply the resnet block layers
+        activation = self.blocklayer1(activation)
+        activation = self.blocklayer2(activation)
+        activation = self.blocklayer3(activation)
+        activation = self.blocklayer4(activation)
         ## apply the postprocessing layers
         activation = self.avgpool(activation)
         activation = self.reshape(activation)
         activation = self.fullyconnected(activation)
         return activation
 
-    def _make_metalayer(self, block_count, input_channels, internal_channels, stride):
+    def _make_blocklayer(self, block_count, input_channels, internal_channels, stride):
         downsampler = None
 
         # were going to be building up a layers list.
