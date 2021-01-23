@@ -4,26 +4,71 @@ from res_net_block import ResNetBlock
 from res_net_block import EXPANSION_FACTOR
 
 class ResNet(nn.Module):
-    def __init__(self, block_counts, input_channels, num_classes, layers = 'all'):
+    """
+    Initialization Parameters for a ResNet
+
+    A ResNet has the following layouts:
+
+    image tensor
+    |> convnet |> batchnorm |> relu |> maxpool # preshaping
+    # resnet blocks
+    |> block layer 1
+    |> block layer 2
+    |> block layer 3
+    |> block layer 4
+    # encoding layers
+    |> avgpool |> fcnn
+
+    It ingests tensors of the form (samples x channels x w x h)
+    and returns tensors of the form (samples x num_classes)
+
+    This treatment does not perform any classification operations (such as softmax)
+    on the output vectors.
+
+    ## Block Layers
+    a block layer is n `ResNetBlock` layers (see the corresponding class)
+    of which the first layer is used to expand the number of channels and
+    possibly perform a stride, and the remaining n-1 do not change the channels or
+    the image tensor dimensions.
+
+    The following parameters are used:
+    - block_counts: how many ResNetBlocks are in each layer.  Must be a list of 4
+      integers; Typically of the form `[3, N, M, 3]` where N and M are variable and
+      determine the "size" of the ResNet.  ResNet 50 is [3, 4, 6, 3].  ResNet 101
+      is [3, 4, 23, 3].  ResNet152 is [3, 8, 36, 3].
+
+    - input_channels:  how many channels in your input tensor.
+    - num_classes:  how many classes the result vector will encode.
+    - internal_channels (default 64):  Scales how many internal channels you want
+      your ResNet to pass between block layers.  The scaling will be as follows:
+      - block layer 1: x4
+      - block layer 2: x2
+      - block layer 3: x2
+      - block layer 4: x2
+      so your final layer will have 32x as many channels as the input.
+
+    - layers: for testing.
+      - 'all' (default): return a full ResNet.
+      - (int): return a ResNet with only the first (int) layers.
+    """
+    def __init__(self, block_counts, input_channels, num_classes, internal_channels = 64, layers = 'all'):
         # make sure that our block counts is a list with 4 parameters.
         assert len(block_counts) == 4
-
         super(ResNet, self).__init__()
 
-        # how many channels we'll start out with in the first convnet layer.
-        # TODO: figure out how to pass these explicitly.  Also this needs to be renamed.
-        internal_channels = 64
+        channels = list(map(lambda x: x * 64, [1, 4, 8, 16, 32]))
+
         # expand "color" channels to "the main channel"
-        self.conv1      = self._option(1, layers, nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3))
+        self.conv1      = self._option(1, layers, nn.Conv2d(input_channels, internal_channels, kernel_size=7, stride=2, padding=3))
         self.batchnorm1 = self._option(2, layers, nn.BatchNorm2d(internal_channels))
         self.relu       = self._option(3, layers, nn.ReLU())
         self.maxpool    = self._option(4, layers, nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
         ## ResNet blocklayers
-        self.blocklayer1 = self._option(5, layers, self._make_blocklayer(block_counts[0], 64, 256))
-        self.blocklayer2 = self._option(6, layers, self._make_blocklayer(block_counts[1], 256, 512, stride=2))
-        self.blocklayer3 = self._option(7, layers, self._make_blocklayer(block_counts[2], 512, 1024, stride=2))
-        self.blocklayer4 = self._option(8, layers, self._make_blocklayer(block_counts[3], 1024, 2048, stride=2))
+        self.blocklayer1 = self._option(5, layers, self._make_blocklayer(block_counts[0], channels[0], channels[1]))
+        self.blocklayer2 = self._option(6, layers, self._make_blocklayer(block_counts[1], channels[1], channels[2], stride=2))
+        self.blocklayer3 = self._option(7, layers, self._make_blocklayer(block_counts[2], channels[2], channels[3], stride=2))
+        self.blocklayer4 = self._option(8, layers, self._make_blocklayer(block_counts[3], channels[3], channels[4], stride=2))
 
         ## cleanup and postprocessing
         self.avgpool =        self._option(9, layers, nn.AdaptiveAvgPool2d((1, 1)))
@@ -54,7 +99,6 @@ class ResNet(nn.Module):
         layers.append(ResNetBlock(input_channels, output_channels, stride))
         for i in range(block_count - 1):
             layers.append(ResNetBlock(output_channels, output_channels))
-
         # splat the layers list.
         return nn.Sequential(*layers)
 
