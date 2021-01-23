@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from res_net_block import ResNetBlock
+from res_net_block import EXPANSION_FACTOR
 
 class ResNet(nn.Module):
     def __init__(self, block_counts, input_channels, num_classes, layers = 'all'):
@@ -27,7 +28,7 @@ class ResNet(nn.Module):
         ## cleanup and postprocessing
         self.avgpool =        self._option(9, layers, nn.AdaptiveAvgPool2d((1, 1)))
         self.reshape =        self._option(10, layers, self._final_reshape)
-        self.fullyconnected = self._option(11, layers, nn.Linear(512 * 4, num_classes))
+        self.fullyconnected = self._option(11, layers, nn.Linear(512 * EXPANSION_FACTOR, num_classes))
 
     def forward(self, input):
         # apply the pretreatment layers, generating activations.
@@ -55,7 +56,7 @@ class ResNet(nn.Module):
         # note that ResNetBlock will return size input_channels * 4!!  this is super confusing!
         layers.append(ResNetBlock(input_channels, internal_channels, stride))
         for i in range(block_count - 1):
-            layers.append(ResNetBlock(internal_channels * 4, internal_channels))
+            layers.append(ResNetBlock(internal_channels * EXPANSION_FACTOR, internal_channels))
 
         # splat the layers list.
         return nn.Sequential(*layers)
