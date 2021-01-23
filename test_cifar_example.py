@@ -5,7 +5,7 @@ from cifar_example import CifarDataset
 class TestCifarDataset(unittest.TestCase):
 
     def _dummy_input(_self):
-        return torch.tensor([0 for _ in range(3072)], dtype=torch.uint8)
+        return [0 for _ in range(3072)]
 
     def test_labels_single(self):
         dataset = CifarDataset([self._dummy_input()], [47])
@@ -31,7 +31,7 @@ class TestCifarDataset(unittest.TestCase):
         return [v for _ in range(1024)]
 
     def test_data_single(self):
-        # dataset provides a flat Torch array, which is a 3072-entry
+        # dataset provides a list of flat python lists, which is a 3072-entry
         # 1-d Tensor.
         # The first 1024 entries contain the red channel values,
         # the next 1024 the green, and the final 1024 the blue.
@@ -49,13 +49,7 @@ class TestCifarDataset(unittest.TestCase):
         self.assertEqual(flat_python_list[1024], 1)
         self.assertEqual(flat_python_list[2048], 2)
 
-        torch_input = torch.tensor(flat_python_list, dtype=torch.uint8)
-
-        self.assertEqual(torch_input[0], 0)
-        self.assertEqual(torch_input[1024], 1)
-        self.assertEqual(torch_input[2048], 2)
-
-        dataset = CifarDataset([torch_input], [47])
+        dataset = CifarDataset([flat_python_list], [47])
         data, _ = dataset.__getitem__(0)
 
         # make sure the tensor shape is correct.
