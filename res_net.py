@@ -73,12 +73,3 @@ class ResNet(nn.Module):
         return activation
     def _identity_layer2(_self, activation, _):
         return activation
-
-def ResNet50(img_channel=3, num_classes=1000):
-    return ResNet(block, [3, 4, 6, 3], img_channel, num_classes)
-
-def test():
-    net = ResNet50(img_channel=3, num_classes=100)
-    y = net(torch.randn(4, 3, 224, 224)).to("cpu")
-
-test()
