@@ -68,7 +68,7 @@ if __name__ == '__main__':
     train_dataset = CifarDataset()
 
     model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
-    tconf = TrainerConfig(max_epochs=options['epochs'], batch_size=512, options['lr'], num_workers=4,
-      ckpt_path = options['checkpoint'])
+    tconf = TrainerConfig(max_epochs=options['epochs'], batch_size=512,
+      learning_rate = options['lr'], num_workers=4, ckpt_path = options['checkpoint'])
     trainer = Trainer(model, train_dataset, None, tconf)
     trainer.train()
