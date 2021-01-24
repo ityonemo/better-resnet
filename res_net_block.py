@@ -58,7 +58,7 @@ class ResNetBlock(nn.Module):
         self.skiplayer =   self._option(10, layers, self._skiplayer, self._identity_layer2)
         self.relu3 =       nn.ReLU()
 
-    def forward(self, activation):
+    def forward(self, activation, _ = None):
         identity = activation.clone()
 
         # apply the predefined layers, generating activations as you go along.

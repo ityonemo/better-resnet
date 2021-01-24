@@ -11,21 +11,13 @@ class TestCifarDataset(unittest.TestCase):
         dataset = CifarDataset([self._dummy_input()], [47])
         _, label = dataset.__getitem__(0)
         # check validity of the one-hot encoding.
-        self.assertEqual(label[47], 1.0)
-        # nothing else is encoded.
-        for idx in range(100):
-            if idx != 47:
-                self.assertEqual(label[idx], 0.0)
+        self.assertEqual(label, 47)
 
     def test_labels_multi(self):
         dataset = CifarDataset([self._dummy_input(), self._dummy_input()], [47, 35])
         _, label = dataset.__getitem__(1)
         # check validity of the one-hot encoding.
-        self.assertEqual(label[35], 1.0)
-        # nothing else is encoded.
-        for idx in range(100):
-            if idx != 35:
-                self.assertEqual(label[idx], 0.0)
+        self.assertEqual(label, 35)
 
     def _array1024(_self, v):
         return [v for _ in range(1024)]

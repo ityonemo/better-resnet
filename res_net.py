@@ -74,8 +74,10 @@ class ResNet(nn.Module):
         self.avgpool =        self._option(9, layers, nn.AdaptiveAvgPool2d((1, 1)))
         self.reshape =        self._option(10, layers, self._final_reshape)
         self.fullyconnected = self._option(11, layers, nn.Linear(2048, num_classes))
+        self.softmax =        nn.LogSoftmax(dim=1)
+        self.nll_loss =       nn.NLLLoss()
 
-    def forward(self, input):
+    def forward(self, input, targets = None):
         ## apply the pretreatment layers, generating activations.
         activation = self.conv1(input)
         activation = self.batchnorm1(activation)
@@ -90,7 +92,13 @@ class ResNet(nn.Module):
         activation = self.avgpool(activation)
         activation = self.reshape(activation)
         activation = self.fullyconnected(activation)
-        return activation
+
+        if targets is not None:
+            logits = self.softmax(activation)
+            loss = self.nll_loss(logits, targets)
+            return logits, loss
+        else:
+            return activation
 
     def _make_blocklayer(self, block_count, input_channels, output_channels, stride = 1):
         # build up a layers list
@@ -104,6 +112,11 @@ class ResNet(nn.Module):
 
     def _final_reshape(_self, activation):
         return activation.reshape(activation.shape[0], -1)
+
+    # required, from Andrej Karpathy's minGPT
+    def configure_optimizers(self, train_config):
+        optimizer = torch.optim.AdamW(self.parameters(), lr=train_config.learning_rate, betas=train_config.betas)
+        return optimizer
 
     # tools for running tests:
     def _option(self, layer_id, use_layers, layer, identity = None):

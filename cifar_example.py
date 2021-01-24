@@ -41,20 +41,23 @@ class CifarDataset(Dataset):
         self.labels = labels
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.data)
 
     def __getitem__(self, idx):
         # make a correctly dimensioned tensor (from flat 3072-list) -> 3x32x32 tensor.
-        x = torch.reshape(torch.tensor(self.data[idx]), [3, 32, 32])
-        # encode as a one-hot tensor of 100 values
-        y = torch.tensor([(1.0 if onehotidx == self.labels[idx] else 0.0) for onehotidx in range(100)], dtype=torch.float)
+        x = torch.reshape(torch.tensor(self.data[idx], dtype=torch.float), [3, 32, 32])
+        # encode as a single value
+        y = self.labels[idx] #torch.tensor([], dtype=torch.float)
         return x, y
 
 from trainer import Trainer, TrainerConfig
+from res_net import ResNet
 
 if __name__ == '__main__':
     # initialize a trainer instance and kick off training
     train_dataset = CifarDataset()
+
+    model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
     tconf = TrainerConfig(max_epochs=2, batch_size=512, learning_rate=6e-4, num_workers=4)
-    #trainer = Trainer(model, train_dataset, None, tconf)
-    #trainer.train()
+    trainer = Trainer(model, train_dataset, None, tconf)
+    trainer.train()
