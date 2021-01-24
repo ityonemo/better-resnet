@@ -54,10 +54,21 @@ from trainer import Trainer, TrainerConfig
 from res_net import ResNet
 
 if __name__ == '__main__':
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-o", "--output", dest="checkpoint", type="string",
+                      help="output checkpoint name")
+    parser.add_option("-e", "--epochs", dest="epochs", type="int",
+                      default=100, help="number of epochs to run")
+    parser.add_option("-l", "--learning-rate", dest="lr", type="float",
+                      default=6e-4, help="learining rate for the run")
+    (options, args) = parser.parse_args()
+
     # initialize a trainer instance and kick off training
     train_dataset = CifarDataset()
 
     model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
-    tconf = TrainerConfig(max_epochs=2, batch_size=512, learning_rate=6e-4, num_workers=4)
+    tconf = TrainerConfig(max_epochs=options['epochs'], batch_size=512, options['lr'], num_workers=4,
+      ckpt_path = options['checkpoint'])
     trainer = Trainer(model, train_dataset, None, tconf)
     trainer.train()
