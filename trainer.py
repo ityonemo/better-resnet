@@ -99,7 +99,7 @@ class Trainer:
         self.tokens = 0 # counter used for learning rate decay
         for epoch in range(config.max_epochs):
 
-            run_epoch('train')
+            test_loss = run_epoch('train')
             if self.test_dataset is not None:
                 test_loss = run_epoch('test')
 
