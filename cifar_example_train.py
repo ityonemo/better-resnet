@@ -56,6 +56,8 @@ from res_net import ResNet
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option("-i", "--input", dest="input", type="string",
+                      help="input checkpoint name")
     parser.add_option("-o", "--output", dest="checkpoint", type="string",
                       help="output checkpoint name")
     parser.add_option("-e", "--epochs", dest="epochs", type="int",
@@ -67,7 +69,11 @@ if __name__ == '__main__':
     # initialize a trainer instance and kick off training
     train_dataset = CifarDataset()
 
-    model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
+    if os.path.isfile(options.input):
+        model = torch.load(options.input)
+    else:
+        model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
+
     tconf = TrainerConfig(max_epochs=options.epochs, batch_size=512,
       learning_rate=options.lr, num_workers=4, ckpt_path = options.checkpoint)
     trainer = Trainer(model, train_dataset, None, tconf)
