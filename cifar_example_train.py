@@ -17,10 +17,10 @@ def unpickle(file):
 
 class CifarDataset(Dataset):
     """
-    creates a cifar 100-dataset.
+    creates a cifar 10-dataset.
 
     data are a flat list of numpy arrays of dimension 3072
-    labels are a flat list of labels (integers 1..100)
+    labels are a flat list of labels (integers 1..10)
     """
     def __init__(self, datasetfile, data = None, labels = None):
         # get the data from the cifar dataset.
@@ -29,11 +29,11 @@ class CifarDataset(Dataset):
             data = cifar_dataset[b"data"] if data == None else data
             labels = cifar_dataset[b"fine_labels"] if labels == None else data
 
-        # data validation.  Make sure that all labels are between 1 and 100
+        # data validation.  Make sure that all labels are between 1 and 10
         # Make sure that all entries are the expected sort of torch arrays.
         assert len(data) == len(labels)
         for label in labels:
-            assert 0 <= label <= 100
+            assert 0 <= label <= 10
         for entry in data:
             assert len(entry) == 3072
 
@@ -47,7 +47,7 @@ class CifarDataset(Dataset):
         # make a correctly dimensioned tensor (from flat 3072-list) -> 3x32x32 tensor.
         x = torch.reshape(torch.tensor(self.data[idx], dtype=torch.float), [3, 32, 32])
         # encode as a single value
-        y = self.labels[idx] #torch.tensor([], dtype=torch.float)
+        y = self.labels[idx]
         return x, y
 
 from trainer import Trainer, TrainerConfig
@@ -68,9 +68,10 @@ if __name__ == '__main__':
 
     # pull the training dataset and the validation dataset
     train_dataset = CifarDataset("cifar-100-python/train")
+    valid_dataset = CifarDataset("cifar-100-python/valid")
 
     # set up the resnet model
-    model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
+    model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=10)
     if not (options.input == None):
         checkpoint = torch.load(options.input)
         model.load_state_dict(checkpoint)
