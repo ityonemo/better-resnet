@@ -67,8 +67,8 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     # pull the training dataset and the validation dataset
-    train_dataset = CifarDataset("cifar-100-python/train")
-    valid_dataset = CifarDataset("cifar-100-python/valid")
+    train_dataset = CifarDataset("cifar-10-batches-py/data_batch_1")
+    valid_dataset = CifarDataset("cifar-10-batches-py/test_batch")
 
     # set up the resnet model
     model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=10)
