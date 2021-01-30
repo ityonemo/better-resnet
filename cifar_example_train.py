@@ -4,8 +4,8 @@ import torch
 from torch.utils.data import Dataset
 
 # make sure the cifar directory exists.
-if (not os.path.isdir("cifar-100-python")):
-    print("you should run `download_cifar_100.sh` first")
+if (not os.path.isdir("cifar-10-batches-py")):
+    print("you should run `download_cifar_10.sh` first")
     exit(1)
 
 # unpickling (see guidelines in https://www.cs.toronto.edu/~kriz/cifar.html)
