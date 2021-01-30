@@ -22,10 +22,10 @@ class CifarDataset(Dataset):
     data are a flat list of numpy arrays of dimension 3072
     labels are a flat list of labels (integers 1..100)
     """
-    def __init__(self, data = None, labels = None):
+    def __init__(self, datasetfile, data = None, labels = None):
         # get the data from the cifar dataset.
         if data == None or labels == None:
-            cifar_dataset = unpickle("cifar-100-python/train")
+            cifar_dataset = unpickle(datasetfile)
             data = cifar_dataset[b"data"] if data == None else data
             labels = cifar_dataset[b"fine_labels"] if labels == None else data
 
@@ -66,15 +66,16 @@ if __name__ == '__main__':
                       default=6e-4, help="learining rate for the run")
     (options, args) = parser.parse_args()
 
-    # initialize a trainer instance and kick off training
-    train_dataset = CifarDataset()
+    # pull the training dataset and the validation dataset
+    train_dataset = CifarDataset("cifar-100-python/train")
 
+    # set up the resnet model
     model = ResNet([3, 4, 6, 3], input_channels=3, num_classes=100)
-
-    if os.path.isfile(options.input):
+    if not (options.input == None):
         checkpoint = torch.load(options.input)
         model.load_state_dict(checkpoint)
 
+    # initialize a trainer instance and kick off training
     tconf = TrainerConfig(max_epochs=options.epochs, batch_size=512,
       learning_rate=options.lr, num_workers=4, ckpt_path = options.checkpoint)
     trainer = Trainer(model, train_dataset, None, tconf)
