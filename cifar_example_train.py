@@ -27,7 +27,7 @@ class CifarDataset(Dataset):
         if data == None or labels == None:
             cifar_dataset = unpickle(datasetfile)
             data = cifar_dataset[b"data"] if data == None else data
-            labels = cifar_dataset[b"fine_labels"] if labels == None else data
+            labels = cifar_dataset[b"labels"] if labels == None else data
 
         # data validation.  Make sure that all labels are between 1 and 10
         # Make sure that all entries are the expected sort of torch arrays.
